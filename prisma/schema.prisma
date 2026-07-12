@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Cliente {
+  id             Int      @id @default(autoincrement())
+  nombre         String   @db.VarChar(150)
+  telefono       String?  @unique @db.VarChar(30)
+  origen_datos   String   @default("android_app") @db.VarChar(50)
+  creado_en      DateTime @default(now()) @db.Timestamp(6)
+  actualizado_en DateTime @default(now()) @db.Timestamp(6)
+
+  // Esto mapea el modelo "Cliente" a la tabla real en minúsculas de Postgres
+  @@map("clientes")
+}
+
+model RegistroLlamada {
+  id                Int      @id @default(autoincrement())
+  cliente_id        Int?
+  telefono          String   @db.VarChar(30)
+  fecha             String   @db.VarChar(15) // Guardado como string según tu formato "YYYY-MM-DD"
+  hora              String   @db.VarChar(15) // Formato "HH:MM:SS"
+  duracion_segundos Int
+  estado            String   @db.VarChar(50)
+  timestamp         BigInt
+  device_id         String   @default("") @db.VarChar(100)
+  creado_en         DateTime @default(now()) @db.Timestamp(6)
+
+  // Evita que la misma llamada con el mismo número e idéntico timestamp se duplique
+  @@unique([telefono, timestamp])
+  // Índices rápidos para acelerar tus búsquedas en el Dashboard del GET
+  @@index([fecha])
+  @@index([cliente_id])
+
+  // Esto mapea el modelo a la tabla real de tu SQL nativo
+  @@map("registro_llamadas")
+}
