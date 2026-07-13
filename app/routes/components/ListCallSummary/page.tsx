@@ -84,27 +84,48 @@ export default function RoutesPage() {
     );
   }, [searchQuery, allData]);
 
-  // Exportar CSV adaptado a la nueva estructura
   const handleExportCSV = () => {
-  const headers = "Fecha;Nombre;Telefono;Numero de Llamadas\n";
-  const rows = filteredData
-    .map(
-      (item) =>
-        `${item.fechaRegistro};"${item.nombre}";"${item.numero}";${item.totalLlamadas}`
-    )
-    .join("\n");
-  const contenidoCSV = "sep=;\n" + headers + rows;
+    // 1. Agrupar la sumatoria global de llamadas por día
+    const totalesPorDia = filteredData.reduce((acc: Record<string, number>, curr) => {
+      if (!curr.fechaRegistro) return acc;
+      const fecha = curr.fechaRegistro.trim();
+      acc[fecha] = (acc[fecha] || 0) + curr.totalLlamadas;
+      return acc;
+    }, {});
 
-  const blob = new Blob(["\uFEFF" + contenidoCSV], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", `reporte_llamadas_${startDate}_a_${endDate}.csv`);
-  link.style.visibility = "hidden";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
+    // 2. Encabezados separados por punto y coma (;)
+    const headers = "Fecha;Nombre;Telefono;Numero de Llamadas;Total Llamadas del Dia\n";
+
+    // 3. Mapeamos las filas usando punto y coma (;) y limpiando comillas extras
+    const rows = filteredData
+      .map((item) => {
+        const fecha = item.fechaRegistro ? item.fechaRegistro.trim() : "";
+        const totalDelDia = totalesPorDia[fecha] || 0;
+        
+        // Limpiamos los textos de saltos de línea o puntos y comas accidentales
+        const nombreLimpio = item.nombre.replace(/;/g, " ");
+        const numeroLimpio = item.numero.replace(/;/g, " ");
+
+        return `${fecha};"${nombreLimpio}";"${numeroLimpio}";${item.totalLlamadas};${totalDelDia}`;
+      })
+      .join("\n");
+
+    // 🌟 TRUCO CLAVE: "sep=;" le ordena directamente a Microsoft Excel usar el punto y coma como divisor de celdas
+    const contenidoCSV = "sep=;\n" + headers + rows;
+
+    // 4. Creamos el archivo con codificación UTF-8 e inyectamos el BOM (\uFEFF) para los acentos
+    const blob = new Blob(["\uFEFF" + contenidoCSV], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    
+    // Cambiamos la extensión a .csv para que el sistema operativo lo reconozca nativamente
+    link.setAttribute("download", `reporte_llamadas_${startDate}_a_${endDate}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <main className="min-h-screen p-4 md:p-6 bg-background space-y-6">

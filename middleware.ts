@@ -5,19 +5,18 @@ import { NextResponse } from "next/server";
 const isPublicRoute = createRouteMatcher([
   '/', 
   '/auth(.*)',
-  '/api/calls(.*)' // Deja pasar las peticiones del móvil con sus query params sin bloquearlas
+  '/api/calls(.*)' 
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
   const { userId } = await auth();
 
-  // 2. Si el usuario YA ESTÁ LOGUEADO e intenta ir al Home o al Sign-In público,
-  // lo redirigimos a la vista del calendario/dashboard
+  
   if (userId && isPublicRoute(req)) {
     const currentUrl = new URL(req.url);
     // Evitamos bucles infinitos si intenta ir a la API estando logueado externamente
     if (!currentUrl.pathname.startsWith('/api')) {
-      return NextResponse.redirect(new URL('/routes', req.url));
+      return NextResponse.redirect(new URL('/routes/components/ListCallSummary', req.url));
     }
   }
 

@@ -15,11 +15,7 @@ import {
 import calendar from '../calendar/calendar';
 
 export const dataGeneralSidebar = [
-    {
-        icon: PanelsTopLeft,
-        label: "Dashboard",
-        href: "/routes",
-    },
+    
     {
         icon: Building2,
         label: "Historico",
@@ -34,16 +30,11 @@ export const dataGeneralSidebar = [
 ]
 
 export const dataToolsSidebar = [
-    {
-        
-        icon: CircleHelpIcon,
-        label: "Faqs",
-        href: "/company",
-    },
+    
     {
         
         icon: BarChart4,
         label: "Analytics",
-        href: "/Analytics",
+        href: "/routes",
     }
 ]
